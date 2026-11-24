@@ -3,7 +3,7 @@
   "domain": "riplay",
   "stage": "beta",
   "name": "RiPlay",
-  "description": "Your RiPlay library (local files, Music Vault and direct URLs) streamed through the RiPlay bridge: multi-room playback stays on Music Assistant, the audio comes straight from your own device.",
+  "description": "Your RiPlay library (local and on-device files, direct URLs) streamed through the RiPlay bridge: multi-room playback stays on Music Assistant, the audio comes straight from your own device. Requires the FOSS edition of RiPlay.",
   "codeowners": ["@fast4x"],
   "provides": ["artist", "album", "track", "playlist"],
   "requirements": ["aiohttp>=3.9.0"],

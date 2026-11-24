@@ -1,9 +1,13 @@
 # RiPlay for Music Assistant
 
 A community music provider for [Music Assistant](https://music-assistant.io):
-it exposes your [RiPlay](https://github.com/fast4x/RiPlay) library (local files,
-Music Vault and direct URLs) as a music source, through the REST bridge
+it exposes your [RiPlay](https://github.com/fast4x/RiPlay) library (local and
+on-device files, direct URLs) as a music source, through the REST bridge
 (`/api/v1`) that runs inside the RiPlay app.
+
+The Music Assistant bridge is available in the **FOSS edition of RiPlay** (it
+is not shipped in the non-FOSS Android edition); on desktop, the RiPlay app
+has no non-free edition and carries the bridge as well.
 
 Multi-room playback, players and queues stay on Music Assistant; the audio
 comes straight from your RiPlay device over HTTP, with Range support (seek),
@@ -31,6 +35,12 @@ without transcoding and without any Python running on the RiPlay side.
 - the provider returns `StreamDetails(StreamType.HTTP, path=streamUrl)` and
   Music Assistant downloads the audio directly.
 
+The stream URL stays inside the Music Assistant server, as its usage policy
+requires: it is only returned by `get_stream_details()` (the playback path)
+and is never written to `ProviderMapping.url`, which every API client can
+read — so neither the relay URL (it carries the token) nor the direct source
+URL is ever exposed through the API.
+
 YouTube-only tracks stay visible in the library but can not be streamed by the
 bridge (YouTube's ToS keeps the stream inside the app's WebView): they are
 marked not playable here — add the official `ytmusic` provider in Music
@@ -38,8 +48,11 @@ Assistant for those.
 
 ## Requirements
 
-- "Expose library to Music Assistant" enabled in RiPlay's server/relay
-  settings, with the host, port and token it shows;
+- the **FOSS edition of RiPlay** (Android) or the RiPlay desktop app, with the
+  shared `relayserver` module and the `riplay-bridge` module (the bridge ships
+  the `/api/v1` API of release 0.1.0 or newer);
+- the Music Assistant bridge enabled in RiPlay's server/relay settings, with
+  the host, port and token it shows;
 - Music Assistant 2.x with the community catalog enabled (Marketplace).
 
 ## Installation
@@ -77,8 +90,10 @@ uv run pytest             # or: pytest
 Apache-2.0. RiPlay itself is GPL-3.0 and stays untouched: the provider only
 talks HTTP to it, there is no code linkage between the two.
 
----
+## Changelog
 
-<div align="center">
- <i> Made with ❤️ by <a href="https://github.com/fast4x">Fast4x</a> </i>
-</div>
+- **0.2.0** — stream addresses no longer appear in `ProviderMapping.url` (they
+  stay inside the server, per the Music Assistant usage policy); the provider
+  targets the FOSS edition of RiPlay, where the bridge lives.
+- **0.1.0** — first release: library browsing, search and HTTP playback over
+  the RiPlay bridge.

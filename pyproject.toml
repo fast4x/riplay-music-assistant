@@ -1,6 +1,6 @@
 [project]
 name = "riplay-music-assistant"
-version = "0.1.0"
+version = "0.2.0"
 description = "RiPlay music provider for Music Assistant: the local RiPlay library over the RiPlay bridge API."
 license = "Apache-2.0"
 requires-python = ">=3.12"

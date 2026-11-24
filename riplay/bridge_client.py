@@ -9,7 +9,6 @@ a missing item (BridgeItemNotFoundError).
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from dataclasses import dataclass, field
 from typing import Any
@@ -241,7 +240,7 @@ class RiplayBridgeClient:
                     text = await response.text()
                     raise BridgeError(f"Bridge HTTP {response.status} on {path}: {text[:200]}")
                 return await response.json(content_type=None)
-        except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
+        except (TimeoutError, aiohttp.ClientConnectionError) as exc:
             raise BridgeConnectionError(
                 f"RiPlay bridge unreachable on {url}: {exc}"
             ) from exc
@@ -257,7 +256,7 @@ class RiplayBridgeClient:
                 if response.status != 200:
                     raise BridgeConnectionError(f"/ping HTTP {response.status}")
                 return await response.json(content_type=None)
-        except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
+        except (TimeoutError, aiohttp.ClientConnectionError) as exc:
             raise BridgeConnectionError(f"RiPlay bridge unreachable on {url}: {exc}") from exc
 
     async def health(self) -> dict[str, Any]:

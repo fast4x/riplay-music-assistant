@@ -2,7 +2,7 @@
 
 DOMAIN = "riplay"
 NAME = "RiPlay"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 # Config entry keys (declared in get_config_entries, texts in strings.json)
 CONF_BRIDGE_HOST = "bridge_host"

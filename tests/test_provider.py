@@ -120,7 +120,7 @@ class FakeBridgeHandler(BaseHTTPRequestHandler):
             return False
         return True
 
-    def do_GET(self) -> None:  # noqa: N802
+    def do_GET(self) -> None:
         from urllib.parse import parse_qs, urlsplit
 
         parts = urlsplit(self.path)
@@ -446,6 +446,38 @@ async def test_stream_details_youtube_only_track(bridge: int) -> None:
             await provider.get_stream_details("yt-1", MediaType.TRACK)
         with pytest.raises(MediaNotFoundError):
             await provider.get_stream_details("nope", MediaType.TRACK)
+    finally:
+        await provider.unload()
+
+
+async def test_stream_url_never_exposed_in_provider_mapping(bridge: int) -> None:
+    """Stream addresses stay inside the server (Music Assistant usage policy).
+
+    ProviderMapping.url is serialized to every API client, so the relay URL
+    (which carries the token) and the direct URL of the source must never end
+    up there: they only leave the provider through get_stream_details().
+    """
+    provider = make_provider(bridge)
+    await provider.handle_async_init()
+    try:
+        tracks: list[Track] = []
+        tracks.extend([t async for t in provider.get_library_tracks()])
+        tracks.extend(await provider.get_album_tracks("album-1"))
+        tracks.extend(await provider.get_playlist_tracks("1", page=0))
+        tracks.extend((await provider.search("local", ["track"], limit=5)).tracks)
+        tracks.append(await provider.get_track("local-1"))
+        assert tracks and any(t.item_id == "local-1" for t in tracks)
+        for track in tracks:
+            for mapping in track.provider_mappings:
+                assert mapping.url is None, (
+                    f"stream address exposed in ProviderMapping.url for {track.item_id}"
+                )
+        # the playable URL still reaches the playback path (StreamDetails only)
+        details = await provider.get_stream_details("local-1", MediaType.TRACK)
+        assert details.path == f"http://127.0.0.1:{bridge}/relay/testtoken/s/local-1"
+        # the bridge endpoint still computes it: nothing changes on the app side
+        detail = await provider.client.track("local-1")
+        assert detail.stream_url == details.path
     finally:
         await provider.unload()
 

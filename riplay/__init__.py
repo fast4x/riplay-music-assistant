@@ -1,8 +1,10 @@
 """RiPlay provider for Music Assistant.
 
-Exposes the music library of RiPlay (local files, Music Vault, direct URLs) as a
-music source, through the REST bridge /api/v1 that runs inside the RiPlay app
-(same process and port as its streaming relay server).
+Exposes the music library of RiPlay FOSS (local and on-device files, direct
+URLs) as a music source, through the REST bridge /api/v1 that runs inside the
+RiPlay app (same process and port as its streaming relay server). The bridge is
+only present in the FOSS edition of RiPlay and in the desktop app: the non-FOSS
+Android edition does not ship it.
 
 Playback flow:
 1. Music Assistant asks for the StreamDetails of a track;
@@ -14,6 +16,11 @@ Playback flow:
      (http://<ip>:<port>/relay/<token>/s/<id>, with Range support);
 4. the provider returns StreamDetails(StreamType.HTTP, path=streamUrl): Music
    Assistant downloads the audio directly, without transcoding.
+
+The streamUrl never leaves the server: it is only returned by
+get_stream_details() (the playback path) and is never placed in
+ProviderMapping.url, which every API client can read — the usage policy of
+Music Assistant keeps stream addresses inside the server.
 
 YouTube-only tracks stay visible in the library but are not servable by the
 bridge (their stream can not leave the WebView per YouTube's ToS); they are
@@ -28,6 +35,7 @@ import logging
 from collections.abc import AsyncGenerator, Sequence
 from typing import TYPE_CHECKING
 
+from music_assistant.models.music_provider import MusicProvider
 from music_assistant_models.config_entries import ConfigEntry
 from music_assistant_models.enums import (
     ConfigEntryType,
@@ -43,8 +51,8 @@ from music_assistant_models.media_items import (
     Artist,
     AudioFormat,
     ItemMapping,
-    MediaItemMetadata,
     MediaItemImage,
+    MediaItemMetadata,
     Playlist,
     ProviderMapping,
     SearchResults,
@@ -52,14 +60,11 @@ from music_assistant_models.media_items import (
 )
 from music_assistant_models.streamdetails import StreamDetails
 
-from music_assistant.models.music_provider import MusicProvider
-
 from .bridge_client import (
     BridgeAlbum,
     BridgeArtist,
     BridgeAuthError,
     BridgeConnectionError,
-    BridgeError,
     BridgeItemNotFoundError,
     BridgePlaylist,
     BridgeTrack,
@@ -76,11 +81,10 @@ from .const import (
 )
 
 if TYPE_CHECKING:
-    from music_assistant_models.config_entries import ProviderConfig
-    from music_assistant_models.provider import ProviderManifest
-
     from music_assistant.mass import MusicAssistant
     from music_assistant.models import ProviderInstanceType
+    from music_assistant_models.config_entries import ProviderConfig
+    from music_assistant_models.provider import ProviderManifest
 
 # these features decide what the provider does; provides in manifest.json is for
 # discovery only: the media types it offers whatever the config or the account
@@ -195,8 +199,9 @@ class RiplayProvider(MusicProvider):
             await client.close()
             raise ProviderUnavailableError(
                 f"RiPlay bridge unreachable ({exc}): check that the app is open, "
-                "that 'Expose library to Music Assistant' is enabled and that "
-                "host/port match the provider settings."
+                "that the Music Assistant bridge is enabled in the app's "
+                "server/relay settings and that host/port match the provider "
+                "settings."
             ) from exc
         self._client = client
 
@@ -289,7 +294,7 @@ class RiplayProvider(MusicProvider):
             provider_mappings={self._mapping(dto.item_id)},
         )
 
-    def _track(self, dto: BridgeTrack, stream_url: str | None = None) -> Track:
+    def _track(self, dto: BridgeTrack) -> Track:
         audio_format = self._audio_format(dto.mime_type)
         artists = []
         if dto.artist_name:
@@ -322,7 +327,12 @@ class RiplayProvider(MusicProvider):
                     provider_instance=self._instance,
                     available=dto.servable,
                     audio_format=audio_format,
-                    url=stream_url or dto.direct_url,
+                    # NO stream URL here: ProviderMapping.url is serialized to
+                    # every API client, and the usage policy of Music Assistant
+                    # keeps stream addresses inside the server (the relay URL
+                    # carries the token, the direct URL the source address).
+                    # The playback path only reads get_stream_details().
+                    url=None,
                 )
             },
         )
@@ -401,9 +411,14 @@ class RiplayProvider(MusicProvider):
         return self._album(dto)
 
     async def get_track(self, prov_track_id: str) -> Track:
-        """Return full details of a single track."""
+        """Return full details of a single track.
+
+        The streamUrl computed by the bridge for this call is deliberately
+        ignored here: it belongs to get_stream_details() only (see the module
+        docstring about ProviderMapping.url).
+        """
         detail = await self.client.track(prov_track_id)
-        return self._track(detail.track, stream_url=detail.stream_url)
+        return self._track(detail.track)
 
     async def get_playlist(self, prov_playlist_id: str) -> Playlist:
         """Return full details of a single playlist."""
@@ -481,6 +496,10 @@ class RiplayProvider(MusicProvider):
         - direct -> the URL of the source (the phone is not in the audio path);
         - relay  -> /relay/<token>/s/<id> of RiPlay's streaming server, with
           Range support (seek) already working.
+
+        This is the ONLY place a stream address leaves the provider: it stays
+        inside the server (usage policy) and is never written to
+        ProviderMapping.url.
         """
         try:
             detail = await self.client.track(item_id)

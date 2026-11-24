@@ -1,7 +1,7 @@
 {
   "manifest": {
     "name": "RiPlay",
-    "description": "La tua libreria RiPlay (file locali, Music Vault e URL diretti) in streaming tramite il bridge RiPlay: la riproduzione multi-room resta a Music Assistant, l'audio arriva direttamente dal tuo dispositivo."
+    "description": "La tua libreria RiPlay (file locali e sul dispositivo, URL diretti) in streaming tramite il bridge RiPlay: la riproduzione multi-room resta a Music Assistant, l'audio arriva direttamente dal tuo dispositivo. Richiede l'edizione FOSS di RiPlay."
   },
   "config_entries": {
     "bridge_host": {
