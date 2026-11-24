@@ -97,3 +97,9 @@ talks HTTP to it, there is no code linkage between the two.
   targets the FOSS edition of RiPlay, where the bridge lives.
 - **0.1.0** — first release: library browsing, search and HTTP playback over
   the RiPlay bridge.
+
+---
+
+<div align="center">
+ <i> Made with ❤️ by <a href="https://github.com/fast4x">Fast4x</a> </i>
+</div>
