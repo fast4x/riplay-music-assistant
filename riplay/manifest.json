@@ -1,0 +1,12 @@
+{
+  "type": "music",
+  "domain": "riplay",
+  "stage": "beta",
+  "name": "RiPlay",
+  "description": "Your RiPlay library (local files, Music Vault and direct URLs) streamed through the RiPlay bridge: multi-room playback stays on Music Assistant, the audio comes straight from your own device.",
+  "codeowners": ["@fast4x"],
+  "provides": ["artist", "album", "track", "playlist"],
+  "requirements": ["aiohttp>=3.9.0"],
+  "documentation": "https://github.com/fast4x/riplay-music-assistant#readme",
+  "multi_instance": true
+}

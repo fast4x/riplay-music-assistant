@@ -1,0 +1,20 @@
+{
+  "manifest": {
+    "name": "RiPlay",
+    "description": "La tua libreria RiPlay (file locali, Music Vault e URL diretti) in streaming tramite il bridge RiPlay: la riproduzione multi-room resta a Music Assistant, l'audio arriva direttamente dal tuo dispositivo."
+  },
+  "config_entries": {
+    "bridge_host": {
+      "label": "Host del bridge RiPlay",
+      "description": "Indirizzo LAN del dispositivo RiPlay, visibile nelle impostazioni server/relay dell'app (es. 192.168.1.10)."
+    },
+    "bridge_port": {
+      "label": "Porta del bridge",
+      "description": "Porta del server RiPlay: la stessa porta serve il bridge e il relay di streaming."
+    },
+    "api_token": {
+      "label": "Token API",
+      "description": "Token mostrato nelle impostazioni server/relay di RiPlay: autorizza sia /api/v1 sia gli URL di streaming."
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "manifest": {
+    "name": "RiPlay",
+    "description": "Your RiPlay library (local files, Music Vault and direct URLs) streamed through the RiPlay bridge: multi-room playback stays on Music Assistant, the audio comes straight from your own device."
+  },
+  "config_entries": {
+    "bridge_host": {
+      "label": "RiPlay bridge host",
+      "description": "LAN address of the RiPlay device, as shown in the app's server/relay settings (e.g. 192.168.1.10)."
+    },
+    "bridge_port": {
+      "label": "Bridge port",
+      "description": "Port of RiPlay's server: the same port serves the bridge and the streaming relay."
+    },
+    "api_token": {
+      "label": "API token",
+      "description": "Token shown in RiPlay's server/relay settings: it authorizes both /api/v1 and the streaming URLs."
+    }
+  }
+}

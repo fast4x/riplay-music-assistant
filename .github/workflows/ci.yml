@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install aiohttp music-assistant-models pytest pytest-asyncio
+      - run: pytest -v
+
+  # the checks every release gets in the catalog: the manifest, the requirements
+  # against a channel and loading the provider in the server image of that channel
+  catalog:
+    name: Catalog checks
+    uses: music-assistant/community-catalog/.github/workflows/check-provider.yml@main
+    with:
+      folder: riplay
+      channel: nightly
